@@ -25,3 +25,5 @@ WORKDIR /opt/app
 
 COPY pyproject.toml poetry.loc[k] /opt/app/
 RUN poetry install $(test $RUN_LEVEL == production && echo "--no-dev") --no-interaction --no-ansi
+
+RUN mkdir /mnt/log/

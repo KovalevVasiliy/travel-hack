@@ -28,8 +28,6 @@ services:
       context: service
       dockerfile: deployment/docker/Dockerfile.server
       target: base
-      args:
-        RUN_LEVEL: dev
     volumes:
       - ./service:/opt/app
     env_file:
@@ -46,8 +44,6 @@ services:
     build: &celery-build
       context: service
       dockerfile: deployment/docker/Dockerfile.celeryd
-      args:
-        RUN_LEVEL: dev
     env_file:
       - .env
     networks:
