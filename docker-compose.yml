@@ -39,6 +39,22 @@ services:
       - postgres
       - redis
       - mongo
+  news:
+    container_name: news-service
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    expose:
+      - "8000"
+    depends_on:
+      - mongo
+    build:
+      context: ""
+      dockerfile: news-service/docker/Dockerfile
+    networks:
+      - default
+    restart: unless-stopped
 
   celeryd: &celery
     container_name: travel-planner-celeryd
