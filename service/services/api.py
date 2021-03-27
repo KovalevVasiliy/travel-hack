@@ -7,10 +7,9 @@ from typing import Any, Callable, Dict, Generic, List, Optional, Type, TypeVar, 
 
 from fastapi import APIRouter, Depends, HTTPException, Path
 from fastapi.security import OAuth2PasswordBearer
+from log import current_context, log
 from pydantic import ValidationError
 from starlette.responses import UJSONResponse
-
-from log import current_context, log
 
 from .schemas import ErrorResponse
 

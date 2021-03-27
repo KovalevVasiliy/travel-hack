@@ -1,6 +1,7 @@
 ### Dev files
 .docker_data
 notes.txt
+*.csv
 
 ### IDE
 .idea

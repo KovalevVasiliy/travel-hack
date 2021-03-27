@@ -1,9 +1,9 @@
 from typing import Generator, Optional
 
+from log import log
 from sqlalchemy.orm import Session as SessionType
 
 from database import Session
-from log import log
 
 
 def get_db() -> Generator[SessionType, None, None]:  # pragma: no cover
