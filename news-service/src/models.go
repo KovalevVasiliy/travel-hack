@@ -1,7 +1,7 @@
 package main
 
-type URL string
 type CategoryId uint64
+type LocationId uint64
 
 type NewsStruct struct {
 	Title string `json:"title"`
@@ -11,16 +11,21 @@ type NewsStruct struct {
 	Categories []CategoryId `json:"categories"`
 }
 
-type ResultMany struct {
-	Result      string `json:"result"`
-	Description string `json:"description"`
-	News []NewsStruct `json:"news"`
+type Category struct {
+	Id CategoryId `json:"category_id"`
+	Name string `json:"category_name"`
+}
+
+type Location struct {
+	Name      string `json:"name"`
+	Id LocationId `json:"location_id"`
+	IsFavorite bool `json:"is_favorite"`
 }
 
 type Result struct {
 	Result      string `json:"result"`
 	Description string `json:"description"`
-	News NewsStruct `json:"news"`
+	Data interface{} `json:"data"`
 }
 
 type SocialInfo struct {

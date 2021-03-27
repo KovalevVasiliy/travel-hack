@@ -2,7 +2,9 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/gorilla/mux"
+	"log"
 	"net/http"
 	"strconv"
 )
@@ -15,9 +17,120 @@ func getNewsFromBDById(id uint64) (NewsStruct, error) {
 	return NewsStruct{}, nil
 }
 
+var categoryIdMap = map[CategoryId]Category{}
+var locationIdMap = map[LocationId]Location{}
+
+
+func getLocationById(id LocationId) (location Location, err error) {
+	location = locationIdMap[id]
+	if location.Name == "" {
+		url := fmt.Sprintf("http://postgrest:3000/locations?location_id=%d", id)
+		resp, err := http.Get(url)
+		if err != nil {
+			log.Print("getLocationById GET error", err)
+			return location, err
+		}
+		var locations []Location
+		err = json.NewDecoder(resp.Body).Decode(&locations)
+		if err != nil {
+			log.Print("getLocationById Decoding error ", err)
+			return location, err
+		}
+		location = locations[0]
+		locationIdMap[id] = locations[0]
+		log.Printf("getLocationById return from server name: %s , %d: ", location.Name, location.Id)
+	}
+	log.Printf("getLocationById return from cache name: %s , %d: ", location.Name, location.Id)
+	return location, nil
+}
+
+
+func GetLocationById(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	params := mux.Vars(r)
+	id, err := strconv.Atoi(params["id"])
+	if err != nil {
+		result := Result{
+			Result:"not ok",
+			Description: "nil id",
+		}
+		_ = json.NewEncoder(w).Encode(result)
+		return
+	}
+	result := Result{
+		Result:"OK",
+	}
+	location, err := getLocationById(LocationId(id))
+	if err != nil {
+		result := Result{
+			Result:"not ok",
+			Description: "no such location",
+		}
+		_ = json.NewEncoder(w).Encode(result)
+		return
+	}
+	result.Data = location
+	_ = json.NewEncoder(w).Encode(result)
+}
+
+func getCategoryById(id CategoryId) (category Category, err error) {
+	category = categoryIdMap[id]
+	if category.Name == "" {
+		url := fmt.Sprintf("http://postgrest:3000/categories?category_id=%d", id)
+		resp, err := http.Get(url)
+		if err != nil {
+			log.Print("getCategoryById GET error", err)
+			return category, err
+		}
+		var categories []Category
+		var bytes []byte
+		resp.Body.Read(bytes)
+		log.Print(string(bytes))
+		err = json.NewDecoder(resp.Body).Decode(&categories)
+		if err != nil {
+			log.Print("getCategoryById Decoding error ", err)
+			return category, err
+		}
+		category = categories[0]
+		categoryIdMap[id] = categories[0]
+		log.Printf("getCategoryById return from server name: %s , %d: ", category.Name, category.Id)
+	}
+	log.Printf("getCategoryById return from cache name: %s , %d: ", category.Name, category.Id)
+	return category, nil
+}
+
+
+func GetCategoryById(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	params := mux.Vars(r)
+	id, err := strconv.Atoi(params["id"])
+	if err != nil {
+		result := Result{
+			Result:"not ok",
+			Description: "nil id",
+		}
+		_ = json.NewEncoder(w).Encode(result)
+		return
+	}
+	result := Result{
+		Result:"OK",
+	}
+	category, err := getCategoryById(CategoryId(id))
+	if err != nil {
+		result := Result{
+			Result:"not ok",
+			Description: "no such category",
+		}
+		_ = json.NewEncoder(w).Encode(result)
+		return
+	}
+	result.Data = category
+	_ = json.NewEncoder(w).Encode(result)
+}
+
 func GetNews(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	var result ResultMany
+	var result Result
 	result.Result = "OK"
 	news, err := getNewsFromBD()
 
@@ -29,7 +142,7 @@ func GetNews(w http.ResponseWriter, r *http.Request) {
 		_ = json.NewEncoder(w).Encode(result)
 		return
 	}
-	result.News = news
+	result.Data = news
 	_ = json.NewEncoder(w).Encode(result)
 }
 
@@ -57,6 +170,6 @@ func GetNewsById(w http.ResponseWriter, r *http.Request) {
 		_ = json.NewEncoder(w).Encode(result)
 		return
 	}
-	result.News = news
+	result.Data = news
 	_ = json.NewEncoder(w).Encode(result)
 }
