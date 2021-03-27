@@ -1,0 +1,27 @@
+# Develop image
+ARG BASE_TAG
+FROM $BASE_TAG
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    supervisor \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN mkdir -p /var/log/supervisord
+RUN mkdir -p /var/log/celery/
+
+COPY conf /opt/app/conf
+COPY crud /opt/app/crud
+COPY database /opt/app/database
+COPY services /opt/app/services
+COPY utils /opt/app/utils
+
+COPY worker /opt/app/worker
+
+COPY deployment/celery/beat.sh \
+     deployment/celery/supervisord.conf deployment/celery/supervisord.sh \
+     /opt/app/
+
+COPY deployment/celery/celerybeat.conf /opt/app/celery.conf
+
+RUN chmod +x supervisord.sh
+CMD ["./supervisord.sh"]

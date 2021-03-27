@@ -1,0 +1,88 @@
+version: "3.4"
+
+networks:
+  default:
+
+services:
+  nginx:
+    build:
+      context: nginx
+    container_name: travel-planner-nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - core
+    networks:
+      - default
+
+  core: &service
+    container_name: travel-planner-core
+    entrypoint:
+      - uvicorn
+      - services.core:app
+      - --host=0.0.0.0
+      - --reload
+    build:
+      context: service
+      dockerfile: deployment/docker/Dockerfile.server
+      target: base
+      args:
+        RUN_LEVEL: dev
+    volumes:
+      - ./service:/opt/app
+    env_file:
+      - .env
+    networks:
+      - default
+    restart: unless-stopped
+    depends_on: &service-dependencies
+      - postgres
+      - redis
+
+  celeryd: &celery
+    container_name: travel-planner-celeryd
+    build: &celery-build
+      context: service
+      dockerfile: deployment/docker/Dockerfile.celeryd
+      args:
+        RUN_LEVEL: dev
+    env_file:
+      - .env
+    networks:
+      - default
+    restart: unless-stopped
+    depends_on: *service-dependencies
+
+  celerybeat:
+    <<: *celery
+    container_name: travel-planner-celerybeat
+    build:
+      <<: *celery-build
+      dockerfile: deployment/docker/Dockerfile.celerybeat
+
+  redis:
+    container_name: travel-planner-redis
+    image: library/redis:6
+    command: redis-server --appendonly yes
+    ports:
+      - "6379:6379"
+    networks:
+      - default
+    volumes:
+    - ./.docker_data/redis:/var/lib/redis
+
+  postgres:
+    container_name: travel-planner-postgres
+    image: library/postgres:13
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_PASSWORD: password
+      POSTGRES_USER: user
+      POSTGRES_DB: travel-planner
+    networks:
+      - default
+    volumes:
+      - ./.docker_data/postgres:/var/lib/postgresql/data

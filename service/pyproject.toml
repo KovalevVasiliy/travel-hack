@@ -1,0 +1,45 @@
+[tool.poetry]
+name = "travel-planner"
+version = "0.1.0"
+description = ""
+authors = ["Igor Beschastnov <beschastnovigor@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+# Base
+fastapi = "^0.63.0"
+celery = {extras = ["redis"], version = "^5.0.5"}
+# Postgres
+SQLAlchemy = "^1.4"
+psycopg2-binary = "^2.8"
+alembic = "^1.5.8"
+# Redis
+redis = "^3.5.3"
+# Low level
+ujson = "^4.0.2"
+# Deploy
+uvicorn = "^0.13"
+gunicorn = "^20.0.4"
+# Other
+pydantic = "^1.8"
+email-validator = "^1.0"
+# Common
+cachetools = "^4.1.0"
+tenacity = "^6.2.0"
+
+[tool.poetry.dev-dependencies]
+# Lint
+black = {version = "^19.10b0", allow-prereleases = true}
+pylint = "^2.3"
+isort = "^4.3"
+unify = "^0.5.0"
+# Typings
+mypy = "^0.761.0"
+# Test
+pytest = "^5.3"
+pytest-mock = "^1.13"
+pytest-cov = "^2.8"
+
+[build-system]
+requires = ["poetry>=1.0.2"]
+build-backend = "poetry.masonry.api"
