@@ -19,6 +19,3 @@ def get_db() -> Generator[SessionType, None, None]:  # pragma: no cover
         except:  # pylint: disable=bare-except
             log.exception('Could not commit transaction on end of request!')
             db.rollback()
-    finally:
-        if db:
-            Session.remove()

@@ -8,6 +8,8 @@ from sqlalchemy.orm import sessionmaker
 
 from conf import PG_URI
 
+from .schemas import *
+
 SQLALCHEMY_DATABASE_URL = PG_URI
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
 Session = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -15,5 +17,4 @@ Base: Any = declarative_base()
 
 from .models import *  # isort:skip
 
-
-__all__ = ['Base', 'Session', 'CategoryInterests', 'Category', 'User']
+__all__ = ['Base', 'Session', 'Category', 'User', 'CategoryModel']

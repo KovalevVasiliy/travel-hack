@@ -4,13 +4,12 @@ from sqlalchemy.orm import relationship
 
 from database import Base
 
-
 UserCategory = Table(
     'user_to_category',
     Base.metadata,
     Column('user_id', Integer, ForeignKey('users.user_id'), nullable=False),
     Column('category_id', Integer, ForeignKey('gotorussia_types_category.id'), nullable=False),
-    Column('rating', Integer, nullable=False, default=1)
+    Column('rating', Integer, nullable=False, default=1),
 )
 
 UserNews = Table(
@@ -53,7 +52,9 @@ Location = Table(
         Integer,
         primary_key=True,
         nullable=False,
-        server_default=DefaultClause("nextval('gotorussia_travels_locations_id_seq'::regclass)", for_update=False),
+        server_default=DefaultClause(
+            "nextval('gotorussia_travels_locations_id_seq'::regclass)", for_update=False
+        ),
     ),
     Column('type_id', JSONB),
     Column('object_title', String(255), nullable=False),
@@ -78,7 +79,9 @@ Region = Table(
         Integer,
         primary_key=True,
         nullable=False,
-        server_default=DefaultClause("nextval('gotorussia_travels_regions_id_seq'::regclass)", for_update=False),
+        server_default=DefaultClause(
+            "nextval('gotorussia_travels_regions_id_seq'::regclass)", for_update=False
+        ),
     ),
     Column('name', String(255), nullable=False),
     Column('region_id', Integer),
@@ -86,25 +89,31 @@ Region = Table(
 )
 
 Category = Table(
-    'gotorussia_types_category', Base.metadata,
+    'gotorussia_types_category',
+    Base.metadata,
     Column(
         'id',
         Integer,
         primary_key=True,
         nullable=False,
-        server_default=DefaultClause("nextval('gotorussia_travels_regions_id_seq'::regclass)", for_update=False),
+        server_default=DefaultClause(
+            "nextval('gotorussia_travels_regions_id_seq'::regclass)", for_update=False
+        ),
     ),
     Column('name', Text, nullable=False),
 )
 
 Tour = Table(
-    'gotorussia_travels_tours', Base.metadata,
+    'gotorussia_travels_tours',
+    Base.metadata,
     Column(
         'id',
         Integer,
         primary_key=True,
         nullable=False,
-        server_default=DefaultClause("nextval('gotorussia_travels_tours_id_seq'::regclass)", for_update=False),
+        server_default=DefaultClause(
+            "nextval('gotorussia_travels_tours_id_seq'::regclass)", for_update=False
+        ),
     ),
     Column('tour_description', Text, nullable=False),
     Column('tour_text', Text),
@@ -114,7 +123,9 @@ Tour = Table(
     Column('region_id', Integer()),
     Column('lat', DOUBLE_PRECISION(precision=53)),
     Column('lon', DOUBLE_PRECISION(precision=53)),
-    Column('category_id', Integer, nullable=False, server_default=DefaultClause('1', for_update=False))
+    Column(
+        'category_id', Integer, nullable=False, server_default=DefaultClause('1', for_update=False)
+    ),
 )
 
 
