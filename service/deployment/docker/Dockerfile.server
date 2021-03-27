@@ -1,0 +1,17 @@
+# Develop image
+ARG BASE_TAG
+FROM $BASE_TAG as base
+
+# Production image
+FROM base as service
+
+COPY conf /opt/app/conf
+COPY crud /opt/app/crud
+COPY database /opt/app/database
+COPY services /opt/app/services
+COPY utils /opt/app/utils
+
+COPY deployment/server/server.sh deployment/server/gunicorn_conf.py /opt/app/
+RUN chmod +x server.sh
+
+CMD ["./server.sh"]
