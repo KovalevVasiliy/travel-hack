@@ -35,5 +35,6 @@ type SocialInfo struct {
 }
 
 type Content struct {
-	ContentType string `json:"content"`
+	ContentType string `json:"content_type"`
+	ContentValue string `json:"content_value"`
 }
