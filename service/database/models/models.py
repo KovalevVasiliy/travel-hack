@@ -5,43 +5,34 @@ from sqlalchemy.orm import relationship
 from database import Base
 
 
-class UserCategory(Base):
-    __tablename__ = 'user_to_category'
-
-    category_id = Column(Integer, ForeignKey('categories.category_id'), primary_key=True)
-    user_id = Column(Integer, ForeignKey('users.user_id'), primary_key=True)
-    rating = Column(Integer, nullable=False, default=1)
-    user = relationship('user', back_populates='users')
-    category = relationship('category', back_populates='categories')
-
+UserCategory = Table(
+    'user_to_category',
+    Base.metadata,
+    Column('user_id', Integer, ForeignKey('users.user_id'), nullable=False),
+    Column('category_id', Integer, ForeignKey('gotorussia_types_category.id'), nullable=False),
+    Column('rating', Integer, nullable=False, default=1)
+)
 
 UserNews = Table(
     'user_to_news',
     Base.metadata,
-    Column('user_id', Integer, ForeignKey('users.user_id')),
-    Column('news_id', Integer, ForeignKey('news.news_id')),
+    Column('user_id', Integer, ForeignKey('users.user_id'), nullable=False),
+    Column('news_id', Integer, ForeignKey('news.news_id'), nullable=False),
 )
 
 UserLocation = Table(
     'user_to_locations',
     Base.metadata,
-    Column('user_id', Integer, ForeignKey('users.user_id')),
-    Column('location_id', Integer, ForeignKey('gotorussia_travels_locations.id')),
+    Column('user_id', Integer, ForeignKey('users.user_id'), nullable=False),
+    Column('location_id', Integer, ForeignKey('gotorussia_travels_locations.id'), nullable=False),
 )
 
 UserTrip = Table(
     'user_to_trips',
     Base.metadata,
-    Column('user_id', Integer, ForeignKey('users.user_id')),
-    Column('trip_id', Integer, ForeignKey('trips.trip_id')),
+    Column('user_id', Integer, ForeignKey('users.user_id'), nullable=False),
+    Column('trip_id', Integer, ForeignKey('trips.trip_id'), nullable=False),
 )
-
-
-class Category(Base):
-    __tablename__ = 'categories'
-
-    id = Column('category_id', Integer, primary_key=True, index=True)
-    name = Column(String(50), nullable=False, unique=True)
 
 
 class News(Base):
@@ -62,9 +53,9 @@ Location = Table(
         Integer,
         primary_key=True,
         nullable=False,
-        server_default=DefaultClause("nextval('gotorussia_travels_locations_id_seq'::regclass)"),
-        for_update=False,
+        server_default=DefaultClause("nextval('gotorussia_travels_locations_id_seq'::regclass)", for_update=False),
     ),
+    Column('type_id', JSONB),
     Column('object_title', String(255), nullable=False),
     Column('object_place', String(255)),
     Column('object_coord', String(255)),
@@ -72,10 +63,10 @@ Location = Table(
     Column('adress', Text),
     Column('region_id', Integer),
     Column(
-        'lat', DOUBLE_PRECISION(precision=53), server_default=DefaultClause('0'), for_update=False
+        'lat', DOUBLE_PRECISION(precision=53), server_default=DefaultClause('0', for_update=False),
     ),
     Column(
-        'lon', DOUBLE_PRECISION(precision=53), server_default=DefaultClause('0'), for_update=False
+        'lon', DOUBLE_PRECISION(precision=53), server_default=DefaultClause('0', for_update=False)
     ),
 )
 
@@ -87,12 +78,43 @@ Region = Table(
         Integer,
         primary_key=True,
         nullable=False,
-        server_default=DefaultClause("nextval('gotorussia_travels_regions_id_seq'::regclass)"),
-        for_update=False,
+        server_default=DefaultClause("nextval('gotorussia_travels_regions_id_seq'::regclass)", for_update=False),
     ),
     Column('name', String(255), nullable=False),
     Column('region_id', Integer),
     Column('description', Text),
+)
+
+Category = Table(
+    'gotorussia_types_category', Base.metadata,
+    Column(
+        'id',
+        Integer,
+        primary_key=True,
+        nullable=False,
+        server_default=DefaultClause("nextval('gotorussia_travels_regions_id_seq'::regclass)", for_update=False),
+    ),
+    Column('name', Text, nullable=False),
+)
+
+Tour = Table(
+    'gotorussia_travels_tours', Base.metadata,
+    Column(
+        'id',
+        Integer,
+        primary_key=True,
+        nullable=False,
+        server_default=DefaultClause("nextval('gotorussia_travels_tours_id_seq'::regclass)", for_update=False),
+    ),
+    Column('tour_description', Text, nullable=False),
+    Column('tour_text', Text),
+    Column('tour_title', String(255), nullable=False),
+    Column('address', Text),
+    Column('website', String(255)),
+    Column('region_id', Integer()),
+    Column('lat', DOUBLE_PRECISION(precision=53)),
+    Column('lon', DOUBLE_PRECISION(precision=53)),
+    Column('category_id', Integer, nullable=False, server_default=DefaultClause('1', for_update=False))
 )
 
 
