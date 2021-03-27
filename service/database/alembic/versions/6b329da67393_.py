@@ -36,9 +36,19 @@ def upgrade():
         sa.ForeignKeyConstraint(['trip_id'], ['trips.trip_id'],),
         sa.ForeignKeyConstraint(['user_id'], ['users.user_id'],),
     )
+    op.create_table(
+        'user_to_category',
+        sa.Column('category_id', sa.Integer(), nullable=False),
+        sa.Column('user_id', sa.Integer(), nullable=False),
+        sa.Column('rating', sa.Integer(), nullable=False),
+        sa.ForeignKeyConstraint(['category_id'], ['gotorussia_types_category.id'],),
+        sa.ForeignKeyConstraint(['user_id'], ['users.user_id'],),
+        sa.PrimaryKeyConstraint('category_id', 'user_id'),
+    )
 
 
 def downgrade():
     op.drop_table('user_to_trips')
     op.drop_table('user_to_news')
     op.drop_table('user_to_locations')
+    op.drop_table('user_to_category')
