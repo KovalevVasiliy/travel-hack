@@ -114,6 +114,7 @@ services:
       volumes:
         - ./.docker_data/postgrest:/var/lib/postgrest/data
   swagger:
+    container_name: travel-planner-swagger
     image: swaggerapi/swagger-ui
     ports:
       - "8080:8080"
