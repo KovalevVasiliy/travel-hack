@@ -2,10 +2,10 @@ import logging
 from logging.handlers import RotatingFileHandler
 from typing import Any, Union
 
+from log.context import current_context
 from pydantic import BaseSettings, Field, validator
 
 from conf import DEBUG, RUN_LEVEL, Level
-from log.context import current_context
 
 DATE_FMT = '%Y-%m-%dT%H:%M:%S%Z'
 

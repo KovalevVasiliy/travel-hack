@@ -4,11 +4,11 @@ import functools
 from datetime import date, datetime, time
 from typing import Any, Callable, List, Type, TypeVar, Union
 
+from log import log
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Query, Session
 
 from conf import service_settings
-from log import log
 from utils.types import HasID
 
 from .api import Error, NotFoundError  # pylint: disable=E0402
@@ -53,6 +53,6 @@ def handle_db_error(
 
     exc_msg: str = str(exc.args[0])
 
-    #if 'unique constraint \"operators_email_key\"' in exc_msg:
+    # if 'unique constraint \"operators_email_key\"' in exc_msg:
     #    return Error(f"""Operator with email "{getattr(obj, 'email', None)}" already exists""")
     return exc
