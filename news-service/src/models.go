@@ -1,23 +1,32 @@
 package main
 
 type URL string
+type CategoryId uint64
 
 type NewsStruct struct {
 	Title string `json:"title"`
 	Description string `json:"description"`
-	Image URL `json:"image"`
+	SocInfo SocialInfo `json:"social_info"`
+	Contents []Content `json:"contents"`
+	Categories []CategoryId `json:"categories"`
 }
 
-type Result struct {
+type ResultMany struct {
 	Result      string `json:"result"`
 	Description string `json:"description"`
 	News []NewsStruct `json:"news"`
 }
 
+type Result struct {
+	Result      string `json:"result"`
+	Description string `json:"description"`
+	News NewsStruct `json:"news"`
+}
+
 type SocialInfo struct {
 	NumOfLikes uint64 `json:"likes"`
 	NumOfViews uint64 `json:"views"`
-	IsLiked bool `json:"isLiked"`
+	IsLiked bool `json:"is_liked"`
 }
 
 type Content struct {
