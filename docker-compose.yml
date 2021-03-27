@@ -40,6 +40,7 @@ services:
     depends_on: &service-dependencies
       - postgres
       - redis
+      - mongo
 
   celeryd: &celery
     container_name: travel-planner-celeryd
@@ -86,3 +87,37 @@ services:
       - default
     volumes:
       - ./.docker_data/postgres:/var/lib/postgresql/data
+  mongo:
+      container_name: travel-planner-mongo
+      image: library/mongo:4.2
+      ports:
+        - "27017:27017"
+      environment:
+        MONGO_INITDB_ROOT_USERNAME: user
+        MONGO_INITDB_ROOT_PASSWORD: password
+        MONGO_INITDB_DATABASE: travel-planner
+      networks:
+        - default
+      volumes:
+        - ./.docker_data/mongo:/data/db
+  postgrest:
+      container_name: travel-planner-postgrest
+      image: postgrest/postgrest
+      ports:
+        - "3000:3000"
+      networks:
+        - default
+      env_file:
+        - .env
+      depends_on:
+        - postgres
+      volumes:
+        - ./.docker_data/postgrest:/var/lib/postgrest/data
+  swagger:
+    image: swaggerapi/swagger-ui
+    ports:
+      - "8080:8080"
+    expose:
+      - "8080"
+    environment:
+      API_URL: http://localhost:3000/
