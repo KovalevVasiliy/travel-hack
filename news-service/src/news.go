@@ -83,9 +83,6 @@ func getCategoryById(id CategoryId) (category Category, err error) {
 			return category, err
 		}
 		var categories []Category
-		var bytes []byte
-		resp.Body.Read(bytes)
-		log.Print(string(bytes))
 		err = json.NewDecoder(resp.Body).Decode(&categories)
 		if err != nil {
 			log.Print("getCategoryById Decoding error ", err)
