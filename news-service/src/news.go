@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/gorilla/mux"
 	"log"
@@ -36,11 +37,17 @@ func getLocationById(id LocationId) (location Location, err error) {
 			log.Print("getLocationById Decoding error ", err)
 			return location, err
 		}
-		location = locations[0]
-		locationIdMap[id] = locations[0]
-		log.Printf("getLocationById return from server name: %s , %d: ", location.Name, location.Id)
+		if len(locations) != 0 {
+			location = locations[0]
+			locationIdMap[id] = locations[0]
+			log.Printf("getLocationById return from server name: %s , %d: ", location.Name, location.Id)
+		} else {
+			log.Print("getLocationById return from server is null")
+			return location, errors.New("no such location")
+		}
+	} else {
+		log.Printf("getLocationById return from cache name: %s , %d: ", location.Name, location.Id)
 	}
-	log.Printf("getLocationById return from cache name: %s , %d: ", location.Name, location.Id)
 	return location, nil
 }
 
@@ -88,11 +95,17 @@ func getCategoryById(id CategoryId) (category Category, err error) {
 			log.Print("getCategoryById Decoding error ", err)
 			return category, err
 		}
-		category = categories[0]
-		categoryIdMap[id] = categories[0]
-		log.Printf("getCategoryById return from server name: %s , %d: ", category.Name, category.Id)
+		if len(categories) != 0 {
+			category = categories[0]
+			categoryIdMap[id] = categories[0]
+			log.Printf("getCategoryById return from server name: %s , %d: ", category.Name, category.Id)
+		} else {
+			log.Print("getCategoryById return from server is null")
+			return category, errors.New("no such location")
+		}
+	} else {
+		log.Printf("getCategoryById return from cache name: %s , %d: ", category.Name, category.Id)
 	}
-	log.Printf("getCategoryById return from cache name: %s , %d: ", category.Name, category.Id)
 	return category, nil
 }
 
