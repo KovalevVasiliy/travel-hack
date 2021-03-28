@@ -17,4 +17,4 @@ Base: Any = declarative_base()
 
 from .models import *  # isort:skip
 
-__all__ = ['Base', 'Session', 'Category', 'User', 'CategoryModel']
+__all__ = ['Base', 'Session', 'Category', 'User', 'CategoryModel', 'Location', 'Tour']

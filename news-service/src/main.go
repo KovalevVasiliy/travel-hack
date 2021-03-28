@@ -8,6 +8,7 @@ import (
 
 	"context"
 
+	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -33,6 +34,10 @@ func main() {
 	dbName := os.Getenv("APP_MONGO_DB")
 	log.Println("Connecting to", dbName)
 
+	headersOk := handlers.AllowedHeaders([]string{"X-Requested-With"})
+	originsOk := handlers.AllowedOrigins([]string{"*"})
+	methodsOk := handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS"})
+
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI(mongoURI))
@@ -44,5 +49,5 @@ func main() {
 
 	app.Router.HandleFunc("/news/all", app.handleRequest(GetNews)).Methods("GET")
 	app.Router.HandleFunc("/news/{id}", app.handleRequest(GetNewsById)).Methods("GET")
-	log.Fatal(http.ListenAndServe(":8000", app.Router))
+	log.Fatal(http.ListenAndServe(":8000", handlers.CORS(originsOk, headersOk, methodsOk)(app.Router)))
 }
