@@ -7,7 +7,7 @@
 
 [Абелтиньш Артур](https://github.com/FireworksX) - фронтенд
 
-Миров Давид - дизайн
+[Миров Давид](t.me/mirowdav) - дизайн
 
 ## Moscow Travel Hack, задача 3
 
