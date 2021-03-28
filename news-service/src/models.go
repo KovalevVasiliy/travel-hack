@@ -43,7 +43,7 @@ type NewsStruct struct {
 	Description string      `json:"description"`
 	Preview     NewsPreview `json:"preview"`
 	SocInfo     SocialInfo  `json:"social_info"`
-	Contents    []Content   `json:"contents"`
+	Contents    []Content   `json:"content"`
 }
 
 type NewsPreviewDB struct {
