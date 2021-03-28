@@ -1,16 +1,48 @@
 package main
 
 import (
-	"github.com/gorilla/mux"
 	"log"
 	"net/http"
+	"os"
+	"time"
+
+	"context"
+
+	"github.com/gorilla/mux"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+type App struct {
+	Router *mux.Router
+	DB     *mongo.Database
+}
+
+var ctx = context.TODO() // actually TODO
+
+type RequestHandlerFunction func(db *mongo.Database, w http.ResponseWriter, r *http.Request)
+
+func (app *App) handleRequest(handler RequestHandlerFunction) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		handler(app.DB, w, r)
+	}
+}
+
 func main() {
-	r := mux.NewRouter()
-	r.HandleFunc("/news", GetNews).Methods("GET")
-	r.HandleFunc("/news/{id}", GetNewsById).Methods("GET")
-	r.HandleFunc("/category/{id}", GetCategoryById).Methods("GET")
-	r.HandleFunc("/location/{id}", GetLocationById).Methods("GET")
-	log.Fatal(http.ListenAndServe(":8000", r))
+	mongoURI := os.Getenv("APP_MONGO_URI")
+	dbName := os.Getenv("APP_MONGO_DB")
+	log.Println("Connecting to", dbName)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI(mongoURI))
+	if err != nil {
+		log.Fatalf("Error while connecting to mongo: %v\n", err)
+	}
+
+	app := App{DB: client.Database(dbName), Router: mux.NewRouter()}
+
+	app.Router.HandleFunc("/news/all", app.handleRequest(GetNews)).Methods("GET")
+	app.Router.HandleFunc("/news/{id}", app.handleRequest(GetNewsById)).Methods("GET")
+	log.Fatal(http.ListenAndServe(":8000", app.Router))
 }
