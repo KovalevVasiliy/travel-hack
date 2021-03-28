@@ -4,6 +4,4 @@ from services.api import Api
 
 api: Api = Api()
 
-# Import routes here
-# from .module import *  # isort:skip
 from .region import top_categories_by_region, generate_news  # isort:skip
