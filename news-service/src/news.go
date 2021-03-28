@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -11,10 +12,68 @@ import (
 	"github.com/gorilla/mux"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func getNewsFromDB(db *mongo.Database) ([]NewsStruct, error) {
-	return []NewsStruct{}, nil
+func getNewsFromDB(db *mongo.Database) ([]*NewsStruct, error) {
+	findOptions := options.Find()
+	collection := db.Collection("collection")
+	var newsStruct []*NewsStruct
+	cur, err := collection.Find(context.TODO(), bson.D{{}}, findOptions)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for cur.Next(context.TODO()) {
+		var elem NewsDB
+		err := cur.Decode(&elem)
+		log.Println("Error loading category for news. ID:", elem.Preview.CategoryID, ", error: ", err)
+		if err != nil {
+			log.Print(err)
+		}
+		category, err := getCategoryById(elem.Preview.CategoryID)
+		if err != nil {
+			log.Println("Error loading category for news. ID:", elem.Preview.CategoryID, ", error: ", err)
+			return []*NewsStruct{}, err
+		}
+		var contents []Content = make([]Content, len(elem.Content))
+		for index, contentDB := range elem.Content {
+			contents[index] = Content{Type: contentDB.Type}
+			if contentDB.Type == "location" {
+				id, err := strconv.Atoi(contentDB.Payload)
+				if err != nil {
+					log.Println("Error converting payload to category_id for news. ID:", contentDB.Payload, ", error: ", err)
+					return []*NewsStruct{}, err
+				}
+
+				locationId := LocationId(id)
+				content, err := getLocationById(locationId)
+				if err != nil {
+					log.Println("Error loading location for news. ID:", locationId, ", error: ", err)
+					return []*NewsStruct{}, err
+				}
+				contents[index].Payload = content
+			} else {
+				contents[index].Payload = contentDB.Payload
+			}
+		}
+		newELem := NewsStruct{
+			Title:       elem.Title,
+			Description: elem.Description,
+			Preview: NewsPreview{
+				Title:       elem.Preview.Title,
+				Description: elem.Preview.Description,
+				SourceName:  elem.Preview.SourceName,
+				Image:       elem.Preview.Image,
+				Category:    category,
+			},
+			SocInfo:  elem.SocInfo,
+			Contents: contents,
+		}
+
+		newsStruct = append(newsStruct, &newELem)
+	}
+	return newsStruct, nil
 }
 
 func getNewsFromDBById(db *mongo.Database, id uint64) (NewsStruct, error) {
@@ -147,8 +206,9 @@ func GetNews(db *mongo.Database, w http.ResponseWriter, r *http.Request) {
 	result := Result{
 		Ok: true,
 	}
-
+	log.Print("getNewsFromDB before")
 	news, err := getNewsFromDB(db)
+	log.Print("getNewsFromDB fater")
 	if err != nil {
 		result := Result{
 			Ok:          false,
