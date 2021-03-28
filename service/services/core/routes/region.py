@@ -21,7 +21,7 @@ def generate_news(id : int, db: Session = Depends(get_db)) -> List[Dict[Any, Any
     DB_URI = "mongodb://user:password@mongo:27017/travel-planner?authSource=admin"
     client = MongoClient(DB_URI)
     mongo = client["travel-planner"]["collection"]
-    fake = Faker()
+    fake = Faker('ru_RU')
     likes = fake.random.randint(0, 10000)
     print("\n\n here")
     categories = [ent.id for ent in db.query(Category).all()]
