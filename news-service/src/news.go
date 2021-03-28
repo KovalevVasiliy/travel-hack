@@ -58,6 +58,7 @@ func getNewsFromDB(db *mongo.Database) ([]*NewsStruct, error) {
 			}
 		}
 		newELem := NewsStruct{
+			Id:          elem.Id,
 			Title:       elem.Title,
 			Description: elem.Description,
 			Preview: NewsPreview{
@@ -117,6 +118,7 @@ func getNewsFromDBById(db *mongo.Database, id uint64) (NewsStruct, error) {
 	}
 
 	return NewsStruct{
+		Id:          newsDB.Id,
 		Title:       newsDB.Title,
 		Description: newsDB.Description,
 		Preview: NewsPreview{
@@ -193,7 +195,7 @@ func getCategoryById(id CategoryId) (category Category, err error) {
 			log.Printf("getCategoryById return from server name: %s , %d: ", category.Name, category.Id)
 		} else {
 			log.Print("getCategoryById return from server is null")
-			return category, errors.New("no such location")
+			return category, errors.New("no such category")
 		}
 	} else {
 		log.Printf("getCategoryById return from cache name: %s , %d: ", category.Name, category.Id)

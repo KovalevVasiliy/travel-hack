@@ -31,7 +31,7 @@ type Location struct {
 	Name       string     `json:"name"`
 	Id         LocationId `json:"location_id"`
 	IsFavorite bool       `json:"is_favorite"`
-	Images string `json:"images"`
+	Images     string     `json:"images"`
 }
 
 type Content struct {
@@ -40,6 +40,7 @@ type Content struct {
 }
 
 type NewsStruct struct {
+	Id          uint64      `json:"id"`
 	Title       string      `json:"title"`
 	Description string      `json:"description"`
 	Preview     NewsPreview `json:"preview"`
@@ -61,6 +62,7 @@ type ContentDB struct {
 }
 
 type NewsDB struct {
+	Id          uint64        `json:"id" bson:"id"`
 	Title       string        `json:"title" bson:"title"`
 	Description string        `json:"description" bson:"description"`
 	Preview     NewsPreviewDB `json:"preview"  bson:"preview"`
