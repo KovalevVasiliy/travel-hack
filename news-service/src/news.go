@@ -18,7 +18,6 @@ func getNewsFromDB(db *mongo.Database) ([]NewsStruct, error) {
 }
 
 func getNewsFromDBById(db *mongo.Database, id uint64) (NewsStruct, error) {
-	log.Println("Start")
 	collection := db.Collection("collection")
 
 	newsDB := &NewsDB{}
