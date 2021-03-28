@@ -4,42 +4,99 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/gorilla/mux"
 	"log"
 	"net/http"
 	"strconv"
+
+	"github.com/gorilla/mux"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func getNewsFromBD() ([]NewsStruct, error) {
+func getNewsFromDB(db *mongo.Database) ([]NewsStruct, error) {
 	return []NewsStruct{}, nil
 }
 
-func getNewsFromBDById(id uint64) (NewsStruct, error) {
-	return NewsStruct{}, nil
+func getNewsFromDBById(db *mongo.Database, id uint64) (NewsStruct, error) {
+	collection := db.Collection("collection")
+
+	newsDB := &NewsDB{}
+	result := collection.FindOne(nil, bson.M{"id": id})
+	err := result.Decode(newsDB)
+	if err != nil {
+		log.Println("Error loading news from db. ID:", id, ", error: ", err)
+		return NewsStruct{}, err
+	}
+
+	category, err := getCategoryById(newsDB.Preview.CategoryID)
+	if err != nil {
+		log.Println("Error loading category for news. ID:", newsDB.Preview.CategoryID, ", error: ", err)
+		return NewsStruct{}, err
+	}
+
+	var contents []Content = make([]Content, len(newsDB.Content))
+	for index, contentDB := range newsDB.Content {
+		contents[index] = Content{Type: contentDB.Type}
+		if contentDB.Type == "location" {
+			id, err := strconv.Atoi(contentDB.Payload)
+			if err != nil {
+				log.Println("Error converting payload to category_id for news. ID:", contentDB.Payload, ", error: ", err)
+				return NewsStruct{}, err
+			}
+
+			locationId := LocationId(id)
+			content, err := getLocationById(locationId)
+			if err != nil {
+				log.Println("Error loading location for news. ID:", locationId, ", error: ", err)
+				return NewsStruct{}, err
+			}
+
+			contents[index].Payload = content
+		} else {
+			contents[index].Payload = contentDB.Payload
+		}
+	}
+
+	return NewsStruct{
+		Title:       newsDB.Title,
+		Description: newsDB.Description,
+		Preview: NewsPreview{
+			Title:       newsDB.Preview.Title,
+			Description: newsDB.Preview.Description,
+			SourceName:  newsDB.Preview.SourceName,
+			Image:       newsDB.Preview.Image,
+			Category:    category,
+		},
+		SocInfo:  newsDB.SocInfo,
+		Contents: contents,
+	}, nil
 }
 
 var categoryIdMap = map[CategoryId]Category{}
 var locationIdMap = map[LocationId]Location{}
 
-
 func getLocationById(id LocationId) (location Location, err error) {
 	location = locationIdMap[id]
+
 	if location.Name == "" {
-		url := fmt.Sprintf("http://postgrest:3000/locations?location_id=%d", id)
+		url := fmt.Sprintf("http://postgrest:3000/gotorussia_travels_locations?id=eq.%d", id)
 		resp, err := http.Get(url)
 		if err != nil {
 			log.Print("getLocationById GET error", err)
 			return location, err
 		}
-		var locations []Location
-		err = json.NewDecoder(resp.Body).Decode(&locations)
+
+		var incomingLocations []IncomingLocation
+		err = json.NewDecoder(resp.Body).Decode(&incomingLocations)
 		if err != nil {
 			log.Print("getLocationById Decoding error ", err)
 			return location, err
 		}
-		if len(locations) != 0 {
-			location = locations[0]
-			locationIdMap[id] = locations[0]
+
+		if len(incomingLocations) != 0 {
+			var incomingLocation = incomingLocations[0]
+			location = Location{Name: incomingLocation.Name, Id: incomingLocation.Id}
+			locationIdMap[id] = location
 			log.Printf("getLocationById return from server name: %s , %d: ", location.Name, location.Id)
 		} else {
 			log.Print("getLocationById return from server is null")
@@ -48,56 +105,32 @@ func getLocationById(id LocationId) (location Location, err error) {
 	} else {
 		log.Printf("getLocationById return from cache name: %s , %d: ", location.Name, location.Id)
 	}
+
 	return location, nil
-}
-
-
-func GetLocationById(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	params := mux.Vars(r)
-	id, err := strconv.Atoi(params["id"])
-	if err != nil {
-		result := Result{
-			Result:"not ok",
-			Description: "nil id",
-		}
-		_ = json.NewEncoder(w).Encode(result)
-		return
-	}
-	result := Result{
-		Result:"OK",
-	}
-	location, err := getLocationById(LocationId(id))
-	if err != nil {
-		result := Result{
-			Result:"not ok",
-			Description: "no such location",
-		}
-		_ = json.NewEncoder(w).Encode(result)
-		return
-	}
-	result.Data = location
-	_ = json.NewEncoder(w).Encode(result)
 }
 
 func getCategoryById(id CategoryId) (category Category, err error) {
 	category = categoryIdMap[id]
+
 	if category.Name == "" {
-		url := fmt.Sprintf("http://postgrest:3000/categories?category_id=%d", id)
+		url := fmt.Sprintf("http://postgrest:3000/gotorussia_types_category?id=eq.%d", id)
 		resp, err := http.Get(url)
 		if err != nil {
 			log.Print("getCategoryById GET error", err)
 			return category, err
 		}
-		var categories []Category
-		err = json.NewDecoder(resp.Body).Decode(&categories)
+
+		var incomingCategories []IncomingCategory
+		err = json.NewDecoder(resp.Body).Decode(&incomingCategories)
 		if err != nil {
 			log.Print("getCategoryById Decoding error ", err)
 			return category, err
 		}
-		if len(categories) != 0 {
-			category = categories[0]
-			categoryIdMap[id] = categories[0]
+
+		if len(incomingCategories) != 0 {
+			var incomingCategory = incomingCategories[0]
+			category = Category{Name: incomingCategory.Name, Id: incomingCategory.Id}
+			categoryIdMap[id] = category
 			log.Printf("getCategoryById return from server name: %s , %d: ", category.Name, category.Id)
 		} else {
 			log.Print("getCategoryById return from server is null")
@@ -109,77 +142,55 @@ func getCategoryById(id CategoryId) (category Category, err error) {
 	return category, nil
 }
 
-
-func GetCategoryById(w http.ResponseWriter, r *http.Request) {
+func GetNews(db *mongo.Database, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	params := mux.Vars(r)
-	id, err := strconv.Atoi(params["id"])
+	result := Result{
+		Ok: true,
+	}
+
+	news, err := getNewsFromDB(db)
 	if err != nil {
 		result := Result{
-			Result:"not ok",
+			Ok:          false,
 			Description: "nil id",
 		}
 		_ = json.NewEncoder(w).Encode(result)
 		return
 	}
-	result := Result{
-		Result:"OK",
-	}
-	category, err := getCategoryById(CategoryId(id))
-	if err != nil {
-		result := Result{
-			Result:"not ok",
-			Description: "no such category",
-		}
-		_ = json.NewEncoder(w).Encode(result)
-		return
-	}
-	result.Data = category
+
+	result.Data = news
+
 	_ = json.NewEncoder(w).Encode(result)
 }
 
-func GetNews(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	var result Result
-	result.Result = "OK"
-	news, err := getNewsFromBD()
-
-	if err != nil {
-		result := Result{
-			Result:"not ok",
-			Description: "nil id",
-		}
-		_ = json.NewEncoder(w).Encode(result)
-		return
-	}
-	result.Data = news
-	_ = json.NewEncoder(w).Encode(result)
-}
-
-func GetNewsById(w http.ResponseWriter, r *http.Request) {
+func GetNewsById(db *mongo.Database, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	params := mux.Vars(r)
 	id, err := strconv.Atoi(params["id"])
-	if err != nil {
-		result := Result{
-			Result:"not ok",
-			Description: "nil id",
-		}
-		_ = json.NewEncoder(w).Encode(result)
-		return
-	}
 	result := Result{
-		Result:"OK",
+		Ok: true,
 	}
-	news, err := getNewsFromBDById(uint64(id))
+
 	if err != nil {
 		result := Result{
-			Result:"not ok",
+			Ok:          false,
 			Description: "nil id",
 		}
 		_ = json.NewEncoder(w).Encode(result)
 		return
 	}
+
+	news, err := getNewsFromDBById(db, uint64(id))
+	if err != nil {
+		result := Result{
+			Ok:          false,
+			Description: "nil id",
+		}
+		_ = json.NewEncoder(w).Encode(result)
+		return
+	}
+
 	result.Data = news
+
 	_ = json.NewEncoder(w).Encode(result)
 }

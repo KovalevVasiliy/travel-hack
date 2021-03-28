@@ -6,10 +6,11 @@ WORKDIR /opt/app
 
 COPY /news-service/go.mo[d] .
 COPY /news-service/go.su[m] .
-COPY /news-service/src .
 
 RUN go get -d -v ./...
 RUN go install -v ./...
+
+COPY /news-service/src .
 
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
     -ldflags='-w -s -extldflags "-static"' -a \
