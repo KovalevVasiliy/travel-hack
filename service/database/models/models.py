@@ -63,6 +63,7 @@ Location = Table(
     Column('object_description', Text, nullable=False),
     Column('adress', Text),
     Column('region_id', Integer),
+    Column('local_id', Integer),
     Column(
         'lat', DOUBLE_PRECISION(precision=53), server_default=DefaultClause('0', for_update=False),
     ),

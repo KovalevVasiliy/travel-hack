@@ -6,12 +6,16 @@ from sqlalchemy.orm import Query, Session
 from database import Category, Location, Region
 
 
-def get_pop_region_categories(db: Session, name: str) -> Any:
-    region_id = db.execute(
+def get_region_by_name(db: Session, name: str) -> Any:
+    return db.execute(
         'SELECT orig_id from gotorussia_travels_regions where name = :name', {'name': name}
-    ).fetchone()['orig_id']
+    ).fetchone()['orig_id']  # TODO: error handling
+
+
+def get_pop_region_categories(db: Session, name: str) -> Any:
     result = db.execute(
-        """SELECT category_id, name FROM (
+        """
+SELECT category_id, name FROM (
      SELECT b        AS category_id,
             count(*) AS count
      FROM (SELECT id,
@@ -23,8 +27,9 @@ def get_pop_region_categories(db: Session, name: str) -> Any:
  ) as bar
  LEFT JOIN gotorussia_types_category ON bar.category_id = CAST(gotorussia_types_category.id as varchar)
 ORDER BY count DESC
-LIMIT 10;""",
-        {'region_id': region_id},
+LIMIT 10;
+        """,
+        {'region_id': get_region_by_name(db, name)},
     ).fetchall()
     return result
 
