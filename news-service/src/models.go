@@ -31,6 +31,7 @@ type Location struct {
 	Name       string     `json:"name"`
 	Id         LocationId `json:"location_id"`
 	IsFavorite bool       `json:"is_favorite"`
+	Images string `json:"images"`
 }
 
 type Content struct {
