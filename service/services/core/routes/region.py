@@ -5,7 +5,7 @@ from fastapi import Depends
 from pymongo import MongoClient
 from sqlalchemy.orm import Session
 
-from crud import get_pop_region_categories
+from crud import get_pop_region_categories, get_locations_by_region_name
 from database import Category, Location
 from services.api import responses
 from services.dependencies import get_db
@@ -31,9 +31,14 @@ def top_categories_by_region(city: str, db: Session = Depends(get_db)) -> List[A
     return get_pop_region_categories(db, city)
 
 
+@api.get('/region/locations', response_model=List[Any], responses=responses)
+def locations_by_region_name(city: str, db: Session = Depends(get_db)) -> List[Any]:
+    return get_locations_by_region_name(db, city)
+
+
 @api.get('/generate/news', response_model=List[Dict[Any, Any]], responses=responses)
 def generate_news(id: int, db: Session = Depends(get_db)) -> List[Dict[Any, Any]]:
-    DB_URI = 'mongodb://user:password@mongo:27017/travel-planner?authSource=admin'
+    DB_URI = "mongodb://user:password@mongo:27017/travel-planner?authSource=admin"
     client = MongoClient(DB_URI)
     mongo = client['travel-planner']['collection']
     fake = Faker('ru_RU')
