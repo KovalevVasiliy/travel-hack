@@ -21,3 +21,5 @@ COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=builder /opt/app/bin/news-service /opt/app/bin/news-service
 
 CMD ["/opt/app/bin/news-service"]
+
+EXPOSE 8000
