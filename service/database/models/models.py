@@ -124,6 +124,7 @@ Tour = Table(
     Column('region_id', Integer()),
     Column('lat', DOUBLE_PRECISION(precision=53)),
     Column('lon', DOUBLE_PRECISION(precision=53)),
+    Column('local_id', Integer),
     Column(
         'category_id', Integer, nullable=False, server_default=DefaultClause('1', for_update=False)
     ),

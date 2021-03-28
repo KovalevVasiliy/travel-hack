@@ -9,7 +9,9 @@ from database import Category, Location, Region
 def get_region_by_name(db: Session, name: str) -> Any:
     return db.execute(
         'SELECT orig_id from gotorussia_travels_regions where name = :name', {'name': name}
-    ).fetchone()['orig_id']  # TODO: error handling
+    ).fetchone()[
+        'orig_id'
+    ]  # TODO: error handling
 
 
 def get_pop_region_categories(db: Session, name: str) -> Any:
