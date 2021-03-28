@@ -27,3 +27,13 @@ LIMIT 10;""",
         {'region_id': region_id},
     ).fetchall()
     return result
+
+
+def get_locations_by_region_name(db: Session, name: str) -> Any:
+    region_id = db.execute(
+        'SELECT orig_id from gotorussia_travels_regions where name = :name', {'name': name}
+    ).fetchone()['orig_id']
+    result = db.execute("SELECT * from gotorussia_travels_locations where local_id = :region_id",
+                        {'region_id': region_id}
+                        ).fetchall()
+    return result[:10]

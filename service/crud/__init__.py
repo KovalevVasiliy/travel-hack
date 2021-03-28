@@ -1,1 +1,1 @@
-from .region import get_pop_region_categories
+from .region import get_pop_region_categories, get_locations_by_region_name

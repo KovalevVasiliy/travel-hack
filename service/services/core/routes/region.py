@@ -3,7 +3,7 @@ from typing import Any, List, Dict
 from fastapi import Depends
 from sqlalchemy.orm import Session
 from pymongo import MongoClient
-from crud import get_pop_region_categories
+from crud import get_pop_region_categories, get_locations_by_region_name
 from database import Category, Location
 from services.api import responses
 from services.dependencies import get_db
@@ -14,6 +14,11 @@ from . import api
 @api.get('/region/top-categories', response_model=List[Any], responses=responses)
 def top_categories_by_region(city: str, db: Session = Depends(get_db)) -> List[Any]:
     return get_pop_region_categories(db, city)
+
+
+@api.get('/region/locations', response_model=List[Any], responses=responses)
+def locations_by_region_name(city: str, db: Session = Depends(get_db)) -> List[Any]:
+    return get_locations_by_region_name(db, city)
 
 
 @api.get('/generate/news', response_model=List[Dict[Any,Any]], responses=responses)
